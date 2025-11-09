@@ -479,7 +479,6 @@ class SMBSession(object):
                 f = LocalFileIO(
                     mode="wb",
                     path=outputfile,
-                    logger=logger,
                     expected_size=entry.get_filesize(),
                     keepRemotePath=keepRemotePath,
                 )
