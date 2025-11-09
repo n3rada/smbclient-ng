@@ -390,8 +390,8 @@ class SMBSession(object):
                 try:
                     if entry.is_directory():
                         if keepRemotePath:
-                            base_path = "./"  # Use root as base
-                            relative_path = ntpath.relpath(fullpath, base_path)
+                            # Use the start path as base to compute relative paths
+                            relative_path = ntpath.relpath(fullpath, path)
                             relative_path = relative_path.replace(
                                 ntpath.sep, os.path.sep
                             )
@@ -405,8 +405,8 @@ class SMBSession(object):
                             pass
                     else:
                         if keepRemotePath:
-                            base_path = "./"  # Use root as base
-                            relative_path = ntpath.relpath(fullpath, base_path)
+                            # Use the start path as base to compute relative paths
+                            relative_path = ntpath.relpath(fullpath, path)
                             relative_path = relative_path.replace(
                                 ntpath.sep, os.path.sep
                             )
@@ -441,8 +441,12 @@ class SMBSession(object):
                     )
                     return
                 if keepRemotePath:
-                    base_path = "./"  # Use root as base
-                    relative_path = ntpath.relpath(path, base_path)
+                    # For single files, use the file's directory as base
+                    file_dir = ntpath.dirname(path) if ntpath.dirname(path) else ""
+                    if file_dir:
+                        relative_path = ntpath.relpath(path, file_dir)
+                    else:
+                        relative_path = entry_name
                     relative_path = relative_path.replace(ntpath.sep, os.path.sep)
                     output_filepath = os.path.normpath(
                         os.path.join(localDownloadDir, relative_path)
@@ -1444,7 +1448,7 @@ class SMBSession(object):
                 if os.path.isfile(localpath):
                     try:
                         localfile = os.path.basename(localpath)
-                        f = LocalFileIO(mode="rb", path=localpath, logger=logger)
+                        f = LocalFileIO(mode="rb", path=localpath)
                         self.smbClient.putFile(
                             shareName=self.smb_share,
                             pathName=ntpath.normpath(
