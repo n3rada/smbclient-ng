@@ -4,20 +4,26 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import ntpath
 
-from impacket.smb3structs import (DACL_SECURITY_INFORMATION,
-                                  FILE_DIRECTORY_FILE, FILE_NON_DIRECTORY_FILE,
-                                  FILE_OPEN, FILE_READ_ATTRIBUTES,
-                                  GROUP_SECURITY_INFORMATION,
-                                  OWNER_SECURITY_INFORMATION, READ_CONTROL,
-                                  SMB2_0_INFO_SECURITY, SMB2_SEC_INFO_00)
+from impacket.smb3structs import (
+    DACL_SECURITY_INFORMATION,
+    FILE_DIRECTORY_FILE,
+    FILE_NON_DIRECTORY_FILE,
+    FILE_OPEN,
+    FILE_READ_ATTRIBUTES,
+    GROUP_SECURITY_INFORMATION,
+    OWNER_SECURITY_INFORMATION,
+    READ_CONTROL,
+    SMB2_0_INFO_SECURITY,
+    SMB2_SEC_INFO_00,
+)
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
 from smbclientng.utils import windows_ls_entry
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 from smbclientng.utils.utils import resolve_remote_files
 
 
@@ -63,9 +69,7 @@ class Command_acls(Command):
         for remotepath in files_and_directories:
             entry = session.get_entry(remotepath)
 
-            interactive_shell.logger.print(
-                windows_ls_entry(entry, interactive_shell.config)
-            )
+            logger.info(windows_ls_entry(entry, interactive_shell.config))
             filename = entry.get_longname()
 
             if filename in [".", ".."]:
@@ -86,7 +90,7 @@ class Command_acls(Command):
                     0,
                 )
             except Exception as err:
-                interactive_shell.logger.error(
+                logger.error(
                     f"Could not get attributes for file {filename}: {str(err)}"
                 )
                 continue
@@ -103,11 +107,11 @@ class Command_acls(Command):
                     flags=0,
                 )
             except Exception as err:
-                interactive_shell.logger.error(
+                logger.error(
                     f"Could not get attributes for file {filename}: {str(err)}"
                 )
                 continue
 
             session.printSecurityDescriptorTable(file_info, filename)
 
-            interactive_shell.logger.print()
+            print()

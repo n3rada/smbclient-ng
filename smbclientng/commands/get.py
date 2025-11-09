@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import argparse
 import traceback
 
@@ -12,8 +13,7 @@ from impacket.smbconnection import SessionError as SMBConnectionSessionError
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 from smbclientng.utils.utils import resolve_remote_files
 
 
@@ -84,7 +84,7 @@ class Command_get(Command):
                 except (SMBConnectionSessionError, SMB3SessionError) as e:
                     if interactive_shell.config.debug:
                         traceback.print_exc()
-                    interactive_shell.logger.error("[!] SMB Error: %s" % e)
+                    logger.error("SMB Error: %s" % e)
             else:
                 if not entry.is_directory():
                     interactive_shell.sessionsManager.current_session.get_file(
@@ -92,7 +92,7 @@ class Command_get(Command):
                         keepRemotePath=(not self.options.dont_keep_remote_path),
                     )
                 else:
-                    interactive_shell.logger.error(
-                        "[!] Entry '%s' is a directory, use the -r option to recursively get directories"
+                    logger.error(
+                        "Entry '%s' is a directory, use the -r option to recursively get directories"
                         % (remotepath)
                     )

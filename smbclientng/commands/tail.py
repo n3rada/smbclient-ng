@@ -5,14 +5,14 @@
 # Date created       : 18 mar 2025
 
 import charset_normalizer
+from loguru import logger
 from impacket.smb3 import SessionError as SMB3SessionError
 from impacket.smbconnection import SessionError as SMBConnectionSessionError
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
 from smbclientng.utils import resolve_remote_files
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_tail(Command):
@@ -55,9 +55,7 @@ class Command_tail(Command):
         for path_to_file in files_and_directories:
 
             if len(files_and_directories) > 1:
-                interactive_shell.logger.print(
-                    "\x1b[1;93m[>] %s\x1b[0m" % (path_to_file + " ").ljust(80, "=")
-                )
+                logger.info((path_to_file + " ").ljust(80, "="))
 
             if interactive_shell.sessionsManager.current_session.path_isfile(
                 pathFromRoot=path_to_file
@@ -79,16 +77,13 @@ class Command_tail(Command):
                             if len(lines) > self.options.lines:
                                 filecontent = "\n".join(lines[-self.options.lines :])
                             if len(files_and_directories) > 1:
-                                interactive_shell.logger.print(
-                                    "\x1b[1;93m[>] %s\x1b[0m"
-                                    % (path_to_file + " ").ljust(80, "=")
-                                )
-                            interactive_shell.logger.print(filecontent)
+                                logger.info((path_to_file + " ").ljust(80, "="))
+                            logger.info(filecontent)
 
                         else:
-                            interactive_shell.logger.error(
-                                "[!] Could not detect charset of '%s'." % path_to_file
+                            logger.error(
+                                "Could not detect charset of '%s'." % path_to_file
                             )
 
                 except (SMBConnectionSessionError, SMB3SessionError) as err:
-                    interactive_shell.logger.error("[!] SMB Error: %s" % err)
+                    logger.error("SMB Error: %s" % err)

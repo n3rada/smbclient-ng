@@ -4,14 +4,14 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import charset_normalizer
 from impacket.smb3 import SessionError as SMB3SessionError
 from impacket.smbconnection import SessionError as SMBConnectionSessionError
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 from smbclientng.utils.utils import resolve_remote_files
 
 
@@ -65,14 +65,11 @@ class Command_cat(Command):
                         if encoding is not None:
                             filecontent = rawcontents.decode(encoding).rstrip()
                             if len(files_and_directories) > 1:
-                                interactive_shell.logger.print(
-                                    "\x1b[1;93m[>] %s\x1b[0m"
-                                    % (path_to_file + " ").ljust(80, "=")
-                                )
-                            interactive_shell.logger.print(filecontent)
+                                logger.info((path_to_file + " ").ljust(80, "="))
+                            logger.info(filecontent)
                         else:
-                            interactive_shell.logger.error(
-                                "[!] Could not detect charset of '%s'." % path_to_file
+                            logger.error(
+                                "Could not detect charset of '%s'." % path_to_file
                             )
                 except (SMBConnectionSessionError, SMB3SessionError) as e:
-                    interactive_shell.logger.error("[!] SMB Error: %s" % e)
+                    logger.error("SMB Error: %s" % e)

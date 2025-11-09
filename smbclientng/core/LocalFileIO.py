@@ -10,13 +10,19 @@ import ntpath
 import os
 from typing import TYPE_CHECKING
 
-from rich.progress import (BarColumn, DownloadColumn, Progress, TextColumn,
-                           TimeRemainingColumn, TransferSpeedColumn)
+from loguru import logger
+
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    TextColumn,
+    TimeRemainingColumn,
+    TransferSpeedColumn,
+)
 
 if TYPE_CHECKING:
     from typing import Optional
-
-    from smbclientng.core.Logger import Logger
 
 
 class LocalFileIO(object):
@@ -40,12 +46,12 @@ class LocalFileIO(object):
         self,
         mode: str,
         path: str,
-        logger: Logger,
         expected_size: Optional[int] = None,
         keepRemotePath: bool = False,
     ):
         super(LocalFileIO, self).__init__()
-        self.logger = logger
+        super(LocalFileIO, self).__init__()
+
         self.mode = mode
         # Convert remote path format to local operating system path format
         self.path = os.path.normpath(path.replace(ntpath.sep, os.path.sep))
@@ -63,12 +69,10 @@ class LocalFileIO(object):
                 self.dir = "." + os.path.sep
 
             if not os.path.exists(self.dir):
-                self.logger.debug("Creating local directory '%s'" % self.dir)
+                logger.debug("Creating local directory '%s'" % self.dir)
                 os.makedirs(self.dir)
 
-            self.logger.debug(
-                "Openning local '%s' with mode '%s'" % (self.path, self.mode)
-            )
+            logger.debug("Openning local '%s' with mode '%s'" % (self.path, self.mode))
 
             try:
                 self.fd = open(
@@ -82,9 +86,7 @@ class LocalFileIO(object):
             if ntpath.sep in self.path:
                 self.dir = os.path.dirname(self.path)
 
-            self.logger.debug(
-                "Openning local '%s' with mode '%s'" % (self.path, self.mode)
-            )
+            logger.debug("Openning local '%s' with mode '%s'" % (self.path, self.mode))
 
             try:
                 self.fd = open(self.path, self.mode)

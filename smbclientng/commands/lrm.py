@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 
 from smbclientng.types.Command import Command
@@ -42,13 +43,13 @@ class Command_lrm(Command):
                     try:
                         os.remove(path=path)
                     except Exception:
-                        interactive_shell.logger.error(
+                        logger.error(
                             "Error removing file '%s' : %s" % path
                         )
                 else:
-                    interactive_shell.logger.error(
+                    logger.error(
                         "Cannot delete '%s'. It is a directory, use 'lrmdir <directory>' instead."
                         % path
                     )
             else:
-                interactive_shell.logger.error("Path '%s' does not exist." % path)
+                logger.error("Path '%s' does not exist." % path)

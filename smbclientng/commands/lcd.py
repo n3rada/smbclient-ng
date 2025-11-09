@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 
 from smbclientng.types.Command import Command
@@ -38,10 +39,10 @@ class Command_lcd(Command):
             if os.path.isdir(s=self.options.path):
                 os.chdir(path=self.options.path)
             else:
-                interactive_shell.logger.error(
+                logger.error(
                     "Path '%s' is not a directory." % self.options.path
                 )
         else:
-            interactive_shell.logger.error(
+            logger.error(
                 "Directory '%s' does not exists." % self.options.path
             )

@@ -5,14 +5,14 @@
 # Date created       : 18 mar 2025
 
 
+from loguru import logger
 import datetime
 import ntpath
 import traceback
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 from smbclientng.utils.utils import filesize, resolve_remote_files
 
 
@@ -58,7 +58,7 @@ class Command_metadata(Command):
             )
 
             if entry is None:
-                interactive_shell.logger.error(f"File {path_to_file} not found")
+                logger.error(f"File {path_to_file} not found")
                 continue
 
             # Get file attributes
@@ -69,30 +69,26 @@ class Command_metadata(Command):
                     path_to_file.lstrip(ntpath.sep),
                 )
 
-                interactive_shell.logger.print("[+] Metadata of '%s'" % uncPath)
+                logger.success("Metadata of '%s'" % uncPath)
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
-                        "  ├─ %-4s: %s" % ("Name", entry.get_shortname())
-                    )
-                    interactive_shell.logger.print("  ├─ %-4s: %s" % ("Path", uncPath))
+                    logger.info("  ├─ %-4s: %s" % ("Name", entry.get_shortname()))
+                    logger.info("  ├─ %-4s: %s" % ("Path", uncPath))
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  ├─ \x1b[94m%-4s\x1b[0m: \x1b[93m%s\x1b[0m"
                         % ("Name", entry.get_shortname())
                     )
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  ├─ \x1b[94m%-4s\x1b[0m: \x1b[93m%s\x1b[0m"
                         % ("Path", uncPath)
                     )
 
-                interactive_shell.logger.print("  ├─ [+] General information")
+                logger.success("General information")
                 if entry.is_directory():
                     if interactive_shell.config.no_colors:
-                        interactive_shell.logger.print(
-                            "  │    ├─ %-10s: %s" % ("Type", "📁 Directory")
-                        )
+                        logger.info("  │    ├─ %-10s: %s" % ("Type", "📁 Directory"))
                     else:
-                        interactive_shell.logger.print(
+                        logger.info(
                             "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m📁 Directory\x1b[0m"
                             % ("Type")
                         )
@@ -110,31 +106,29 @@ class Command_metadata(Command):
                             else:
                                 nb_files += 1
                         if interactive_shell.config.no_colors:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "  │    ├─ %-10s: %d files, %d directories"
                                 % ("Contents", nb_files, nb_directories)
                             )
                         else:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%d files, %d directories\x1b[0m"
                                 % ("Contents", nb_files, nb_directories)
                             )
                     except Exception:
                         if interactive_shell.config.no_colors:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "  │    ├─ %-10s: ? files, ? directories" % ("Contents")
                             )
                         else:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m? files, ? directories\x1b[0m"
                                 % ("Contents")
                             )
                 else:
                     if interactive_shell.config.no_colors:
-                        interactive_shell.logger.print(
-                            "  │    ├─ %-10s: %s" % ("Type", "📄 File")
-                        )
-                        interactive_shell.logger.print(
+                        logger.info("  │    ├─ %-10s: %s" % ("Type", "📄 File"))
+                        logger.info(
                             "  │    ├─ %-10s: %s (%s)"
                             % (
                                 "Size",
@@ -143,11 +137,11 @@ class Command_metadata(Command):
                             )
                         )
                     else:
-                        interactive_shell.logger.print(
+                        logger.info(
                             "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m📄 File\x1b[0m"
                             % ("Type")
                         )
-                        interactive_shell.logger.print(
+                        logger.info(
                             "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%s (%s)\x1b[0m"
                             % (
                                 "Size",
@@ -167,12 +161,12 @@ class Command_metadata(Command):
                 attributes_string += ["Temporary"] if entry.is_temporary() else []
                 attributes_string = sorted(list(set(attributes_string)))
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ %-10s: %d %s"
                         % ("Attributes", entry.get_attributes(), attributes_string)
                     )
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%d\x1b[0m (\x1b[93m%s\x1b[0m)"
                         % (
                             "Attributes",
@@ -180,9 +174,9 @@ class Command_metadata(Command):
                             "\x1b[0m, \x1b[93m".join(attributes_string),
                         )
                     )
-                interactive_shell.logger.print("  │    └───")
+                logger.info("  │    └───")
 
-                interactive_shell.logger.print("  ├─ [+] Timestamps")
+                logger.success("Timestamps")
                 Created = entry.get_ctime_epoch()
                 try:
                     Created = datetime.datetime.fromtimestamp(Created).strftime(
@@ -192,11 +186,9 @@ class Command_metadata(Command):
                     pass
 
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
-                        "  │    ├─ %-10s: %s" % ("Created", Created)
-                    )
+                    logger.info("  │    ├─ %-10s: %s" % ("Created", Created))
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%s\x1b[0m"
                         % ("Created", Created)
                     )
@@ -210,11 +202,9 @@ class Command_metadata(Command):
                     pass
 
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
-                        "  │    ├─ %-10s: %s" % ("Accessed", Accessed)
-                    )
+                    logger.info("  │    ├─ %-10s: %s" % ("Accessed", Accessed))
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%s\x1b[0m"
                         % ("Accessed", Accessed)
                     )
@@ -228,34 +218,32 @@ class Command_metadata(Command):
                     pass
 
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
-                        "  │    ├─ %-10s: %s" % ("Modified", Modified)
-                    )
+                    logger.info("  │    ├─ %-10s: %s" % ("Modified", Modified))
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%s\x1b[0m"
                         % ("Modified", Modified)
                     )
-                interactive_shell.logger.print("  │    └───")
+                logger.info("  │    └───")
 
                 # Get alternate data streams
                 ads = interactive_shell.sessionsManager.current_session.get_alternate_data_streams(
                     path_to_file
                 )
 
-                interactive_shell.logger.print("  ├─ [+] Alternate Data Streams")
+                logger.success("Alternate Data Streams")
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ %-10s: %s" % ("Alternate Data Streams", len(ads))
                     )
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "  │    ├─ \x1b[94m%-10s\x1b[0m: \x1b[93m%s\x1b[0m"
                         % ("Alternate Data Streams", len(ads))
                     )
                 for i, ad in enumerate(ads):
                     if interactive_shell.config.no_colors:
-                        interactive_shell.logger.print(
+                        logger.info(
                             "  │    ├─ #%02d: %s:%s (%s)"
                             % (
                                 i + 1,
@@ -265,7 +253,7 @@ class Command_metadata(Command):
                             )
                         )
                     else:
-                        interactive_shell.logger.print(
+                        logger.info(
                             "  │    ├─ \x1b[94m#%02d\x1b[0m: \x1b[93m%s:%s\x1b[0m (%s)"
                             % (
                                 i + 1,
@@ -274,8 +262,8 @@ class Command_metadata(Command):
                                 filesize(ad["Size"]),
                             )
                         )
-                interactive_shell.logger.print("  │    └───")
-                interactive_shell.logger.print("  └───")
+                logger.info("  │    └───")
+                logger.info("  └───")
 
             except Exception:
                 traceback.print_exc()

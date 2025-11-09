@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
 
@@ -32,9 +33,8 @@ class Command_module(Command):
             module = interactive_shell.modules[module_name](
                 interactive_shell.sessionsManager.current_session,
                 interactive_shell.config,
-                interactive_shell.logger,
             )
             arguments_string = " ".join(arguments[1:])
             module.run(arguments_string)
         else:
-            interactive_shell.logger.error("Module '%s' does not exist." % module_name)
+            logger.error("Module '%s' does not exist." % module_name)

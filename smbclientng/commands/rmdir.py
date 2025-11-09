@@ -4,10 +4,10 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_rmdir(Command):
@@ -46,15 +46,15 @@ class Command_rmdir(Command):
                             path=path_to_directory
                         )
                     except Exception:
-                        interactive_shell.logger.error(
+                        logger.error(
                             "Error removing directory '%s' : %s" % path_to_directory
                         )
                 else:
-                    interactive_shell.logger.error(
+                    logger.error(
                         "Cannot delete '%s': This is a file, use 'rm <file>' instead."
                         % path_to_directory
                     )
             else:
-                interactive_shell.logger.error(
+                logger.error(
                     "Remote directory '%s' does not exist." % path_to_directory
                 )

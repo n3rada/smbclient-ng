@@ -2,17 +2,20 @@
 import argparse
 import sys
 
-from smbclientng.core.InteractiveShell import InteractiveShell
-from smbclientng.core.Logger import Logger
-from smbclientng.core.SessionsManager import SessionsManager
+# Third party library imports
+from loguru import logger
+
 # Local library imports
+from smbclientng import __version__
+from smbclientng.utils import banner
+from smbclientng.utils import logbook
+from smbclientng.core.InteractiveShell import InteractiveShell
+from smbclientng.core.SessionsManager import SessionsManager
 from smbclientng.types.Config import Config
 from smbclientng.types.Credentials import Credentials
 
-VERSION = "3.0.0"
 
-
-def parseArgs():
+def build_parser() -> argparse.ArgumentParser:
     """
     Parse command-line arguments.
 
@@ -20,27 +23,22 @@ def parseArgs():
     It handles configuration, authentication, and session options, and validates the provided arguments.
     """
 
-    print(
-        r"""               _          _ _            _
- ___ _ __ ___ | |__   ___| (_) ___ _ __ | |_      _ __   __ _
-/ __| '_ ` _ \| '_ \ / __| | |/ _ \ '_ \| __|____| '_ \ / _` |
-\__ \ | | | | | |_) | (__| | |  __/ | | | ||_____| | | | (_| |
-|___/_| |_| |_|_.__/ \___|_|_|\___|_| |_|\__|    |_| |_|\__, |
-    by @podalirius_                         %10s  |___/
-    """
-        % ("v" + VERSION)
+    parser = argparse.ArgumentParser(
+        prog="smbclientng",
+        description="smbclient-ng, a fast and user-friendly way to interact with SMB shares.",
+        add_help=True,
+        exit_on_error=True,
     )
 
-    parser = argparse.ArgumentParser(
-        description="smbclient-ng, a fast and user-friendly way to interact with SMB shares."
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Show version and exit.",
     )
 
     group_config = parser.add_argument_group("Config")
-    group_config.add_argument("--debug", action="store_true", help="Enable debug mode.")
-    group_config.add_argument(
-        "--no-colors", action="store_true", help="Disable colored output."
-    )
-    group_config.add_argument("-l", "--logfile", type=str, help="Log file path.")
+
     group_config.add_argument(
         "-T",
         "--timeout",
@@ -70,9 +68,7 @@ def parseArgs():
     # Target arguments
     group_target = parser.add_argument_group("Target")
     group_target.add_argument(
-        "-H",
-        "--host",
-        required=True,
+        "host",
         type=str,
         help="Target SMB Server IP or hostname.",
     )
@@ -80,6 +76,7 @@ def parseArgs():
         "-P",
         "--port",
         type=int,
+        required=False,
         default=445,
         help="Target SMB Server port (default: 445).",
     )
@@ -104,7 +101,9 @@ def parseArgs():
     # Password & Hashes
     group_secrets = parser.add_argument_group("Secrets")
     group_creds = group_secrets.add_mutually_exclusive_group()
-    group_creds.add_argument("-p", "--password", type=str, default="", nargs="?", help="Password.")
+    group_creds.add_argument(
+        "-p", "--password", type=str, default="", nargs="?", help="Password."
+    )
     group_creds.add_argument(
         "--no-pass", action="store_true", help="Do not prompt for a password."
     )
@@ -118,28 +117,30 @@ def parseArgs():
         help="AES key for Kerberos authentication.",
     )
 
-    options = parser.parse_args()
+    advanced_group = parser.add_argument_group(
+        "Advanced Options", "Additional advanced or debugging options."
+    )
 
-    if options.not_interactive and (
-        options.startup_script is None and len(options.command) == 0
-    ):
-        print("[+] Option --not-interactive requires --startup-script or --command.")
-        sys.exit(1)
+    advanced_group.add_argument(
+        "--no-colors", action="store_true", help="Disable colored output."
+    )
+    advanced_group.add_argument("-l", "--logfile", type=str, help="Log file path.")
 
-    if options.user and not (options.password or options.no_pass or options.hashes):
-        from getpass import getpass
+    advanced_group.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging (shortcut for --log-level DEBUG).",
+    )
 
-        options.password = getpass(
-            f"  | Provide a password for '{options.domain}\\{options.user}': "
-        )
+    advanced_group.add_argument(
+        "--log-level",
+        type=str,
+        choices=["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default=None,
+        help="Set the logging level explicitly (overrides --debug).",
+    )
 
-    if options.aes_key:
-        options.kerberos = True
-
-    if options.hashes and ":" not in options.hashes:
-        options.hashes = ":" + options.hashes
-
-    return options
+    return parser
 
 
 def run() -> int:
@@ -160,7 +161,34 @@ def run() -> int:
     Returns:
         None
     """
-    options = parseArgs()
+    print(banner.display_banner())
+
+    parser = build_parser()
+    options = parser.parse_args()
+
+    # Show help if no cli args provided
+    if len(sys.argv) <= 1:
+        parser.print_help()
+        return 1
+
+    if options.not_interactive and (
+        options.startup_script is None and len(options.command) == 0
+    ):
+        print("[+] Option --not-interactive requires --startup-script or --command.")
+        sys.exit(1)
+
+    if options.user and not (options.password or options.no_pass or options.hashes):
+        from getpass import getpass
+
+        options.password = getpass(
+            f"  | Provide a password for '{options.domain}\\{options.user}': "
+        )
+
+    if options.aes_key:
+        options.kerberos = True
+
+    if options.hashes and ":" not in options.hashes:
+        options.hashes = ":" + options.hashes
 
     config = Config()
     config.debug = options.debug
@@ -169,11 +197,24 @@ def run() -> int:
     config.startup_script = options.startup_script
     config.commands = options.command
 
-    logger = Logger(config=config, logfile=options.logfile)
+    # Determine log level based on debug flag
+    log_level = "DEBUG" if options.debug else "INFO"
 
-    sessions_manager = SessionsManager(config=config, logger=logger)
+    logbook.setup_logging(
+        level=log_level, logfile=options.logfile, no_colors=options.no_colors
+    )
 
-    if any([options.domain != ".", options.user, options.password, options.hashes, options.no_pass]):
+    sessions_manager = SessionsManager(config=config)
+
+    if any(
+        [
+            options.domain != ".",
+            options.user,
+            options.password,
+            options.hashes,
+            options.no_pass,
+        ]
+    ):
         credentials = Credentials(
             domain=options.domain,
             username=options.user,
@@ -183,7 +224,7 @@ def run() -> int:
             aesKey=options.aes_key,
             kdcHost=options.kdcHost,
         )
-        sessions_manager.create_new_session(
+        session_created = sessions_manager.create_new_session(
             credentials=credentials,
             host=options.host,
             port=options.port,
@@ -191,13 +232,14 @@ def run() -> int:
             advertisedName=options.advertised_name,
         )
 
-    if sessions_manager is None:
-        print("[!] No session found. Please authenticate first.")
+        # Exit if session creation failed
+        if session_created is False:
+            return 1
+
+    if sessions_manager.current_session is None:
+        logger.error("No active session. Please authenticate first.")
         return 1
 
-    shell = InteractiveShell(
-        sessionsManager=sessions_manager, config=config, logger=logger
-    )
-    shell.run()
+    shell = InteractiveShell(sessionsManager=sessions_manager, config=config)
 
-    logger.debug("Exiting the console.")
+    return shell.run()

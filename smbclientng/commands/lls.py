@@ -4,13 +4,13 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import datetime
 import os
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.utils import (filesize, resolve_local_files,
-                                     unix_permissions)
+from smbclientng.utils.utils import filesize, resolve_local_files, unix_permissions
 
 
 class Command_lls(Command):
@@ -45,7 +45,7 @@ class Command_lls(Command):
 
         for path in local_files:
             if len(local_files) > 1:
-                interactive_shell.logger.print("%s:" % path)
+                logger.info("%s:" % path)
             # lls <directory>
             if os.path.isdir(path):
                 directory_contents = os.listdir(path=path)
@@ -59,7 +59,7 @@ class Command_lls(Command):
 
                     if os.path.isdir(s=entryname):
                         if interactive_shell.config.no_colors:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "%s %10s  %s  %s%s"
                                 % (
                                     rights_str,
@@ -70,7 +70,7 @@ class Command_lls(Command):
                                 )
                             )
                         else:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "%s %10s  %s  \x1b[1;96m%s\x1b[0m%s"
                                 % (
                                     rights_str,
@@ -82,12 +82,12 @@ class Command_lls(Command):
                             )
                     else:
                         if interactive_shell.config.no_colors:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "%s %10s  %s  %s"
                                 % (rights_str, size_str, date_str, entryname)
                             )
                         else:
-                            interactive_shell.logger.print(
+                            logger.info(
                                 "%s %10s  %s  \x1b[1m%s\x1b[0m"
                                 % (rights_str, size_str, date_str, entryname)
                             )
@@ -99,15 +99,15 @@ class Command_lls(Command):
                     os.path.getmtime(filename=path)
                 ).strftime("%Y-%m-%d %H:%M")
                 if interactive_shell.config.no_colors:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "%s %10s  %s  %s"
                         % (rights_str, size_str, date_str, os.path.basename(path))
                     )
                 else:
-                    interactive_shell.logger.print(
+                    logger.info(
                         "%s %10s  %s  \x1b[1m%s\x1b[0m"
                         % (rights_str, size_str, date_str, os.path.basename(path))
                     )
 
             if len(arguments) > 1:
-                interactive_shell.logger.print()
+                print()

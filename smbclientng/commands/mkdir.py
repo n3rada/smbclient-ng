@@ -4,10 +4,10 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_mkdir(Command):
@@ -42,6 +42,4 @@ class Command_mkdir(Command):
             try:
                 interactive_shell.sessionsManager.current_session.mkdir(path=path)
             except Exception as err:
-                interactive_shell.logger.print(
-                    "Error creating directory %s: %s" % (path, err)
-                )
+                logger.info("Error creating directory %s: %s" % (path, err))

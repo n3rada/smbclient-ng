@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 
 from smbclientng.types.Command import Command
@@ -33,4 +34,4 @@ class Command_lpwd(Command):
         if self.options is None:
             return
 
-        interactive_shell.logger.print(os.getcwd())
+        logger.info(os.getcwd())

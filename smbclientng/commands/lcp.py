@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 import shutil
 
@@ -40,8 +41,7 @@ class Command_lcp(Command):
             try:
                 shutil.copyfile(src=self.options.srcfile, dst=self.options.dstfile)
             except shutil.SameFileError as err:
-                interactive_shell.logger.error("[!] Error: %s" % err)
+                logger.error("Error: %s" % err)
         else:
-            interactive_shell.logger.error(
-                "[!] File '%s' does not exists." % self.options.srcfile
+            logger.error("File '%s' does not exists." % self.options.srcfile
             )

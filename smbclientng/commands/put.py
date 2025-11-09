@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 
 from impacket.smb3 import SessionError as SMB3SessionError
@@ -11,8 +12,7 @@ from impacket.smbconnection import SessionError as SMBConnectionSessionError
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 from smbclientng.utils.utils import resolve_local_files
 
 
@@ -61,18 +61,14 @@ class Command_put(Command):
 
         # If nothing matched, report it clearly
         if len(files_and_directories) == 0:
-            interactive_shell.logger.error(
-                "[!] No local files matched the provided path(s)."
-            )
+            logger.error("No local files matched the provided path(s).")
             return
 
         for localpath in files_and_directories:
             try:
                 # Missing local path
                 if not os.path.exists(localpath):
-                    interactive_shell.logger.error(
-                        "[!] Local path '%s' does not exist." % localpath
-                    )
+                    logger.error("Local path '%s' does not exist." % localpath)
                     continue
 
                 # Directory handling
@@ -82,8 +78,8 @@ class Command_put(Command):
                         localpath=localpath
                     )
                 elif os.path.isdir(localpath):
-                    interactive_shell.logger.error(
-                        "[!] Local path '%s' is a directory, use the -r option to recursively put directories"
+                    logger.error(
+                        "Local path '%s' is a directory, use the -r option to recursively put directories"
                         % localpath
                     )
                 else:
@@ -92,4 +88,4 @@ class Command_put(Command):
                         localpath=localpath
                     )
             except (SMBConnectionSessionError, SMB3SessionError) as e:
-                interactive_shell.logger.error("[!] SMB Error: %s" % e)
+                logger.error("SMB Error: %s" % e)

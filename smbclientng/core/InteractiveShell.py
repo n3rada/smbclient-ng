@@ -17,12 +17,14 @@ from datetime import datetime
 from importlib import import_module
 from typing import TYPE_CHECKING
 
+# Third party library imports
+from loguru import logger
+
 # Local library imports
 import smbclientng.commands as commands
 from smbclientng.core.CommandCompleter import CommandCompleter
 
 if TYPE_CHECKING:
-    from smbclientng.core.Logger import Logger
     from smbclientng.core.SessionsManager import SessionsManager
     from smbclientng.types.Config import Config
 
@@ -51,8 +53,8 @@ class InteractiveShell(object):
     modules = {}
     sessionsManager: SessionsManager
     config: Config
-    logger: Logger
     commandCompleterObject: CommandCompleter
+    interrupted_by_user = False
 
     commands = {
         "acls": commands.Command_acls,
@@ -101,18 +103,14 @@ class InteractiveShell(object):
         "quit": commands.Command_quit,
     }
 
-    def __init__(
-        self, sessionsManager: SessionsManager, config: Config, logger: Logger
-    ):
+    def __init__(self, sessionsManager: SessionsManager, config: Config):
         # Objects
         self.sessionsManager = sessionsManager
         self.config = config
-        self.logger = logger
         # Internals
         self.commandCompleterObject = CommandCompleter(
             smbSession=self.sessionsManager.current_session,
             config=self.config,
-            logger=self.logger,
         )
         readline.set_completer(self.commandCompleterObject.complete)
         readline.parse_and_bind("tab: complete")
@@ -122,7 +120,13 @@ class InteractiveShell(object):
         # Additional modules
         self.__load_modules()
 
-    def run(self):
+    def run(self) -> int:
+        """
+        Run the interactive shell.
+
+        Returns:
+            int: Exit code (0 for normal exit, 130 for SIGINT)
+        """
         pre_interaction_commands = []
 
         # Read commands from script file first
@@ -139,42 +143,58 @@ class InteractiveShell(object):
             for line in pre_interaction_commands:
                 try:
                     line_stripped = line.strip()
-                    self.logger.print("%s%s" % (self.__prompt(), line_stripped))
+                    logger.info("%s%s" % (self.__prompt(), line_stripped))
                     self.__record_history_entry(line_stripped)
                     self.process_line(commandLine=line_stripped)
                 except KeyboardInterrupt:
-                    self.logger.print()
+                    print()  # Clean newline after ^C
+                    logger.warning("Operation interrupted by user.")
+                    continue
 
                 except EOFError:
-                    self.logger.print()
+                    print()  # Clean newline
                     self.running = False
+                    break
 
                 except Exception as err:
                     if self.config.debug:
                         traceback.print_exc()
-                    self.logger.error(str(err))
+                    logger.error(str(err))
 
         # Then interactive console
         if not self.config.not_interactive:
             while self.running:
                 try:
                     user_input = input(self.__prompt()).strip()
-                    # Record history and write to logfile
+                    # Record history
                     if len(user_input) > 0:
                         self.__record_history_entry(user_input)
-                    self.logger.write_to_logfile(self.__prompt() + user_input)
+                        logger.trace(self.__prompt() + user_input)
+
                     self.process_line(commandLine=user_input)
+
                 except KeyboardInterrupt:
-                    self.logger.print()
+                    # Ctrl+C at prompt (not during command execution) - exit with SIGINT code
+                    print()  # Clean newline
+                    self.interrupted_by_user = True
+                    self.running = False
+                    break
 
                 except EOFError:
-                    self.logger.print()
+                    print()  # Clean newline
                     self.running = False
+                    break
 
                 except Exception as err:
                     if self.config.debug:
                         traceback.print_exc()
-                    self.logger.error(str(err))
+                    logger.error(str(err))
+
+        # Return proper exit code
+        if self.interrupted_by_user:
+            return 130  # SIGINT exit code
+
+        return 0
 
     def process_line(self, commandLine: str):
         # Split and parse the commandLine
@@ -195,17 +215,21 @@ class InteractiveShell(object):
 
         # Execute the command
         elif command in self.commands.keys():
-            command_instance = self.commands[command](
-                smbSession=self.sessionsManager.current_session,
-                config=self.config,
-                logger=self.logger,
-            )
-            command_instance.run(self, arguments, command)
-            del command_instance
+            try:
+                command_instance = self.commands[command](
+                    smbSession=self.sessionsManager.current_session,
+                    config=self.config,
+                )
+                command_instance.run(self, arguments, command)
+                del command_instance
+            except KeyboardInterrupt:
+                print()  # Clean newline after ^C
+                logger.warning("Operation interrupted by user.")
+                # Don't re-raise - just return to continue the shell
 
         # Fallback to unknown command
         else:
-            self.logger.print('Unknown command. Type "help" for help.')
+            logger.info('Unknown command. Type "help" for help.')
 
     # Private functions =======================================================
 
@@ -227,7 +251,7 @@ class InteractiveShell(object):
         modules_dir = os.path.normpath(
             os.path.dirname(__file__) + os.path.sep + ".." + os.path.sep + "modules"
         )
-        self.logger.debug("[>] Loading modules from %s ..." % modules_dir)
+        logger.debug("Loading modules from %s ..." % modules_dir)
         sys.path.extend([modules_dir])
 
         for file in os.listdir(modules_dir):
@@ -243,19 +267,19 @@ class InteractiveShell(object):
                     except AttributeError:
                         pass
                     except ImportError as err:
-                        self.logger.debug(
+                        logger.debug(
                             "[!] Could not load module '%s': %s" % ((file[:-3]), err)
                         )
 
         if self.config.debug:
             if len(self.modules.keys()) == 0:
-                self.logger.debug("[>] Loaded 0 modules.")
+                logger.debug("Loaded 0 modules.")
             elif len(self.modules.keys()) == 1:
-                self.logger.debug("[>] Loaded 1 module:")
+                logger.debug("Loaded 1 module:")
             else:
-                self.logger.debug("[>] Loaded %d modules:" % len(self.modules.keys()))
+                logger.debug("Loaded %d modules:" % len(self.modules.keys()))
             for modulename in sorted(self.modules.keys()):
-                self.logger.debug(
+                logger.debug(
                     '  | %s : "%s" (%s)'
                     % (
                         self.modules[modulename].name,

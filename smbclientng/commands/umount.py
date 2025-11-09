@@ -4,12 +4,12 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_umount(Command):
@@ -41,13 +41,13 @@ class Command_umount(Command):
             return
 
         if not os.path.exists(self.options.local_mount_point):
-            interactive_shell.logger.error(
+            logger.error(
                 "Local mount point '%s' does not exist"
                 % (self.options.local_mount_point)
             )
             return
 
-        interactive_shell.logger.debug(
+        logger.debug(
             "Trying to unmount local mount point '%s'"
             % (self.options.local_mount_point)
         )

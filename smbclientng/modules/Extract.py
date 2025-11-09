@@ -105,7 +105,7 @@ class Extract(Module):
         old_pwd = self.smbSession.smb_cwd
 
         temp_dir = tempfile.mkdtemp()
-        self.logger.debug("Using temporary local directory '%s'" % temp_dir)
+        logger.debug("Using temporary local directory '%s'" % temp_dir)
         self.smbSession.set_share("C$")
         if self.smbSession.path_isdir("/Windows/System32/"):
             self.smbSession.set_cwd("/Windows/System32/")
@@ -121,11 +121,11 @@ class Extract(Module):
         pev = pe_get_version(temp_dir + os.path.sep + "spoolsv.exe")
         outputfile = "%s-spooler.zip" % pev["FileVersion"]
         zip_file_path = os.path.join(self.options.outputdir, outputfile)
-        self.logger.info("Zipping files downloaded in '%s'" % temp_dir)
+        logger.info("Zipping files downloaded in '%s'" % temp_dir)
         with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
             for root, dirs, files in os.walk(temp_dir):
                 for file in files:
-                    self.logger.print(
+                    logger.info(
                         os.path.join(root, file).replace(
                             temp_dir + os.path.sep, "├──> ", 1
                         )
@@ -134,7 +134,7 @@ class Extract(Module):
                         os.path.join(root, file),
                         os.path.relpath(os.path.join(root, file), temp_dir),
                     )
-        self.logger.info(f"Backup saved to {zip_file_path}")
+        logger.info(f"Backup saved to {zip_file_path}")
 
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)

@@ -4,12 +4,12 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import ntpath
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_rm(Command):
@@ -68,16 +68,12 @@ class Command_rm(Command):
                             path=path_to_file
                         )
                     except Exception:
-                        interactive_shell.logger.error(
-                            "Error removing file '%s' : %s" % path_to_file
-                        )
+                        logger.error("Error removing file '%s' : %s" % path_to_file)
                 else:
-                    interactive_shell.logger.error(
+                    logger.error(
                         "Cannot delete '%s': This is a directory, use 'rmdir <directory>' instead."
                         % path_to_file
                     )
             # File does not exist
             else:
-                interactive_shell.logger.error(
-                    "Remote file '%s' does not exist." % path_to_file
-                )
+                logger.error("Remote file '%s' does not exist." % path_to_file)

@@ -4,6 +4,8 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
+
 
 def command_arguments_required(func):
     """
@@ -34,14 +36,14 @@ def active_smb_connection_needed(func):
         interactive_shell = args[1]
 
         if interactive_shell.sessionsManager.current_session is None:
-            interactive_shell.logger.error("SMB Session is disconnected.")
+            logger.error("SMB Session is disconnected.")
             return None
 
         interactive_shell.sessionsManager.current_session.ping_smb_session()
         if interactive_shell.sessionsManager.current_session.connected:
             return func(*args, **kwargs)
         else:
-            interactive_shell.logger.error("SMB Session is disconnected.")
+            logger.error("SMB Session is disconnected.")
             return None
 
     return wrapper
@@ -58,9 +60,7 @@ def smb_share_is_set(func):
         if interactive_shell.sessionsManager.current_session.smb_share is not None:
             return func(*args, **kwargs)
         else:
-            interactive_shell.logger.error(
-                "You must open a share first, try the 'use <share>' command."
-            )
+            logger.error("You must open a share first, try the 'use <share>' command.")
             return None
 
     return wrapper

@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import ntpath
 import os
 
@@ -12,8 +13,7 @@ from impacket.smbconnection import SessionError as SMBConnectionSessionError
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_mount(Command):
@@ -54,13 +54,13 @@ class Command_mount(Command):
             )
 
         if not os.path.exists(self.options.local_mountpoint):
-            interactive_shell.logger.debug(
+            logger.debug(
                 "Local mountpoint '%s' does not exist, creating it."
                 % self.options.local_mountpoint
             )
             os.makedirs(self.options.local_mountpoint)
 
-        interactive_shell.logger.debug(
+        logger.debug(
             "Trying to mount remote '%s' onto local '%s'"
             % (self.options.remote_path, self.options.local_mountpoint)
         )

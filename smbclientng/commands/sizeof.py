@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import ntpath
 
 from impacket.smb3 import SessionError as SMB3SessionError
@@ -12,8 +13,7 @@ from impacket.smbconnection import SessionError as SMBConnectionSessionError
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
 from smbclientng.utils import filesize, smb_entry_iterator
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_sizeof(Command):
@@ -106,14 +106,14 @@ class Command_sizeof(Command):
                 total_size += path_size
 
             except (SMBConnectionSessionError, SMB3SessionError) as e:
-                interactive_shell.logger.error(f"Failed to access '{path}': {e}")
+                logger.error(f"Failed to access '{path}': {e}")
             except (BrokenPipeError, KeyboardInterrupt):
-                interactive_shell.logger.error("Interrupted.")
+                logger.error("Interrupted.")
                 return
             except Exception as e:
-                interactive_shell.logger.error(f"Error while processing '{path}': {e}")
+                logger.error(f"Error while processing '{path}': {e}")
 
         # If multiple paths, print the total size
         if len(self.options.path) > 1:
-            interactive_shell.logger.print("──────────────────────")
-            interactive_shell.logger.print(f"Total size: {filesize(total_size)}")
+            logger.info("──────────────────────")
+            logger.info(f"Total size: {filesize(total_size)}")

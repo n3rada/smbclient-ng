@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Optional
 from smbclientng.types.CommandArgumentParser import CommandArgumentParserError
 
 if TYPE_CHECKING:
-    from smbclientng.core.Logger import Logger
+    
     from smbclientng.core.SMBSession import SMBSession
     from smbclientng.types.Config import Config
 
@@ -30,7 +30,6 @@ class Command(object):
 
     smbSession: Optional[SMBSession] = None
     config: Optional[Config] = None
-    logger: Optional[Logger] = None
 
     options: Optional[argparse.Namespace] = None
     parser: Optional[argparse.ArgumentParser] = None
@@ -39,11 +38,10 @@ class Command(object):
         self,
         smbSession: Optional[SMBSession] = None,
         config: Optional[Config] = None,
-        logger: Optional[Logger] = None,
     ):
         self.smbSession = smbSession
         self.config = config
-        self.logger = logger
+        
 
         self.parser = self.setupParser()
 

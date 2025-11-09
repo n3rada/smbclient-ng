@@ -4,13 +4,13 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from impacket.smb3 import SessionError as SMB3SessionError
 from impacket.smbconnection import SessionError as SMBConnectionSessionError
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_info(Command):
@@ -57,4 +57,4 @@ class Command_info(Command):
                 server=self.options.print_server_info,
             )
         except (SMBConnectionSessionError, SMB3SessionError) as e:
-            interactive_shell.logger.error("SMB Error: %s" % e)
+            logger.error("SMB Error: %s" % e)

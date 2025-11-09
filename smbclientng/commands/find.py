@@ -4,10 +4,10 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import (active_smb_connection_needed,
-                                         smb_share_is_set)
+from smbclientng.utils.decorators import active_smb_connection_needed, smb_share_is_set
 
 
 class Command_find(Command):
@@ -42,9 +42,8 @@ class Command_find(Command):
             module = interactive_shell.modules[module_name](
                 interactive_shell.sessionsManager.current_session,
                 interactive_shell.config,
-                interactive_shell.logger,
             )
             arguments_string = " ".join(arguments)
             module.run(arguments_string)
         else:
-            interactive_shell.logger.error("Module '%s' does not exist." % module_name)
+            logger.error("Module '%s' does not exist." % module_name)

@@ -4,12 +4,13 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import active_smb_connection_needed
+from smbclientng.utils.decorators import active_smb_connection_needed
 
 
 class Command_shares(Command):
@@ -140,7 +141,7 @@ class Command_shares(Command):
 
             Console().print(table)
         else:
-            interactive_shell.logger.error(
+            logger.error(
                 "No share served on '%s'"
                 % interactive_shell.sessionsManager.current_session.host
             )

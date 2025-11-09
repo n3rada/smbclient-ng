@@ -4,9 +4,10 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import smb_share_is_set
+from smbclientng.utils.decorators import smb_share_is_set
 from smbclientng.utils.utils import windows_ls_entry
 
 
@@ -42,7 +43,7 @@ class Command_ls(Command):
 
         for path in self.options.path:
             if len(self.options.path) > 1:
-                interactive_shell.logger.print("%s:" % path)
+                logger.info("%s:" % path)
 
             if interactive_shell.sessionsManager.current_session.path_isdir(
                 pathFromRoot=path
@@ -63,11 +64,11 @@ class Command_ls(Command):
                     directory_contents = {}
 
             for longname in sorted(directory_contents.keys(), key=lambda x: x.lower()):
-                interactive_shell.logger.print(
+                logger.info(
                     windows_ls_entry(
                         directory_contents[longname], interactive_shell.config
                     )
                 )
 
             if len(arguments) > 1:
-                interactive_shell.logger.print()
+                print()

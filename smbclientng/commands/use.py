@@ -4,11 +4,12 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import argparse
 
 from smbclientng.types.Command import Command
 from smbclientng.types.CommandArgumentParser import CommandArgumentParser
-from smbclientng.utils.decorator import active_smb_connection_needed
+from smbclientng.utils.decorators import active_smb_connection_needed
 
 
 class Command_use(Command):
@@ -45,7 +46,7 @@ class Command_use(Command):
         if sharename.lower() in shares:
             interactive_shell.sessionsManager.current_session.set_share(sharename)
         else:
-            interactive_shell.logger.error(
+            logger.error(
                 "No share named '%s' on '%s'"
                 % (sharename, interactive_shell.sessionsManager.current_session.host)
             )

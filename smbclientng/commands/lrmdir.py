@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 import shutil
 
@@ -43,13 +44,13 @@ class Command_lrmdir(Command):
                     try:
                         shutil.rmtree(path=path)
                     except Exception:
-                        interactive_shell.logger.error(
+                        logger.error(
                             "Error removing directory '%s' : %s" % path
                         )
                 else:
-                    interactive_shell.logger.error(
+                    logger.error(
                         "Cannot delete '%s'. It is a file, use 'lrm <file>' instead."
                         % path
                     )
             else:
-                interactive_shell.logger.error("Path '%s' does not exist." % path)
+                logger.error("Path '%s' does not exist." % path)

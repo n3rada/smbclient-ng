@@ -11,7 +11,7 @@ import shlex
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from smbclientng.core.Logger import Logger
+    
     from smbclientng.core.SMBSession import SMBSession
     from smbclientng.types.Config import Config
 
@@ -28,10 +28,10 @@ class Module(object):
     smbSession: SMBSession = None
     options: argparse.Namespace = None
 
-    def __init__(self, smbSession: SMBSession, config: Config, logger: Logger):
+    def __init__(self, smbSession: SMBSession, config: Config):
         self.smbSession = smbSession
         self.config = config
-        self.logger = logger
+        
 
     def parseArgs(self):
         raise NotImplementedError("Subclasses must implement this method")

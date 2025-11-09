@@ -4,6 +4,7 @@
 # Author             : Podalirius (@podalirius_)
 # Date created       : 18 mar 2025
 
+from loguru import logger
 import os
 
 import charset_normalizer
@@ -57,18 +58,14 @@ class Command_lcat(Command):
                         if encoding is not None:
                             filecontent = rawcontents.decode(encoding).rstrip()
                             if len(local_files) > 1:
-                                interactive_shell.logger.print(
-                                    "\x1b[1;93m[>] %s\x1b[0m"
-                                    % (path_to_file + " ").ljust(80, "=")
+                                logger.info((path_to_file + " ").ljust(80, "=")
                                 )
-                            interactive_shell.logger.print(filecontent)
+                            logger.info(filecontent)
                         else:
-                            interactive_shell.logger.error(
-                                "[!] Could not detect charset of '%s'." % path_to_file
+                            logger.error("Could not detect charset of '%s'." % path_to_file
                             )
                 else:
-                    interactive_shell.logger.error(
-                        "[!] Local file '%s' does not exist." % path_to_file
+                    logger.error("Local file '%s' does not exist." % path_to_file
                     )
             except (SMBConnectionSessionError, SMB3SessionError) as e:
-                interactive_shell.logger.error("[!] SMB Error: %s" % e)
+                logger.error("SMB Error: %s" % e)
